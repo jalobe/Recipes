@@ -47,15 +47,14 @@
     UITableViewCell *cell = nil;
     if (indexPath.row == 0) {
         cell = [tableView dequeueReusableCellWithIdentifier:@"Headline Cell" forIndexPath:indexPath];
-        ((UILabel *)[cell.contentView.subviews firstObject]).text = @"Nutrition Estimates";
     } else {
         cell = [tableView dequeueReusableCellWithIdentifier:@"Ingredient Cell" forIndexPath:indexPath];
-        if (indexPath.row % 2) {
-            cell.backgroundColor = [UIColor grayColor];
-        }
-        else {
-            cell.backgroundColor = [UIColor whiteColor];
-        }
+//        if (indexPath.row % 2) {
+//            cell.backgroundColor = [UIColor grayColor];
+//        }
+//        else {
+//            cell.backgroundColor = [UIColor whiteColor];
+//        }
         
         if ([self.nutritions count]){
             NSUInteger index = 0;
@@ -84,9 +83,10 @@
                     break;
             }
             if (index != NSNotFound) {
-                NSMutableAttributedString *nutritionLine = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@",[self.nutritions[index] valueForKeyPath:@"unit.abbreviation"]]];
+                NSMutableAttributedString *nutritionLine = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@",[self.nutritions[index] valueForKeyPath:@"unit.abbreviation"]]];
                 NSMutableAttributedString *nutritionValue = [[NSMutableAttributedString alloc] initWithString:[(NSNumber *)self.nutritions[index][@"value"] stringValue]];
                 [nutritionLine insertAttributedString:nutritionValue atIndex:0];
+                [nutritionLine insertAttributedString:[[NSAttributedString alloc] initWithString:@"\t"] atIndex:0];
                 NSString *description = self.nutritions[index][@"description"];
                 if ([description isMemberOfClass:[NSNull class]]) {
                     description = @"Calories";

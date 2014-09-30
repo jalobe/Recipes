@@ -101,6 +101,20 @@
 
 
 
+- (void)prepareRecipeOverviewController:(RecipeOverviewViewController *)controller toDisplayRecipeWithID:(NSString *)identifier
+{
+    // load recipe data
+    NSURL *url = [YummlyFetcher URLForRecipeWithID:identifier];
+    NSURLSessionDownloadTask *recipeTask = [self.session downloadTaskWithURL:url
+                                                           completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+                                                               NSMutableDictionary *recipe = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:location] options:0 error:NULL];
+                                                               [self.recipes setValue:recipe forKey:identifier];
+                                                               controller.recipe = recipe;
+                                                           }];
+    [recipeTask resume];
+    controller.recipeImage = self.recipeImages[identifier];
+}
+
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
@@ -109,16 +123,7 @@
         UITableViewCell *cell = (UITableViewCell *)sender;
         NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
         NSString *recipeID = self.matches[indexPath.row][@"id"];
-        // load recipe data
-        NSURL *url = [YummlyFetcher URLForRecipeWithID:recipeID];
-        NSURLSessionDownloadTask *recipeTask = [self.session downloadTaskWithURL:url
-                                                          completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-            NSMutableDictionary *recipe = [NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:location] options:0 error:NULL];
-            [self.recipes setValue:recipe forKey:recipeID];
-            recipeVC.recipe = recipe;
-                                                          }];
-        [recipeTask resume];
-        recipeVC.recipeImage = self.recipeImages[recipeID];
+        [self prepareRecipeOverviewController:recipeVC toDisplayRecipeWithID:recipeID];
     }
 }
 
@@ -134,6 +139,7 @@
         [self.matches addObjectsFromArray:self.searchResponse[@"matches"]];
         for (NSMutableDictionary *match in self.searchResponse[@"matches"]) {
             NSURL *url = [YummlyFetcher URLForImageWithRecipeInformation:match];
+            if (!url) continue;
             NSURLSessionDownloadTask *imageTask = [self.session downloadTaskWithURL:url
                                                               completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
                     // handle image download
@@ -148,6 +154,23 @@
     self.fetchCount++;
 }
 
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // get the Detail view controller in our UISplitViewController (nil if not in one)
+    id detail = self.splitViewController.viewControllers[1];
+    // if Detail is a UINavigationController, look at its root view controller to find it
+    if ([detail isKindOfClass:[UINavigationController class]]) {
+        detail = [((UINavigationController *)detail).viewControllers firstObject];
+    }
+    // is the Detail is an ImageViewController?
+    if ([detail isKindOfClass:[RecipeOverviewViewController class]]) {
+        // yes ... we know how to update that!
+        NSString *recipeID = self.matches[indexPath.row][@"id"];
+        [self prepareRecipeOverviewController:detail toDisplayRecipeWithID:recipeID];
+    }
+}
 
 
 #pragma mark - UITableViewDataSource

@@ -78,13 +78,15 @@
 {
     if (self.currentVC != self.nutritionVC) {
         self.nutritionVC.nutritions = self.recipe[@"nutritionEstimates"];
-        NSLog(@"%@",self.recipe[@"nutritionEstimates"]);
         [self addChildViewController:self.nutritionVC];
         self.nutritionVC.view.frame = self.container.bounds;
         [self moveToNewController:self.nutritionVC];
         [self.nutritionVC.tableView reloadData];
     }
 }
+
+
+
 
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
@@ -99,11 +101,11 @@
     [self.currentVC willMoveToParentViewController:nil];
     [self transitionFromViewController:self.currentVC toViewController:newController duration:.6 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{}
                             completion:^(BOOL finished) {
-                                [self.currentVC removeFromParentViewController];
-                                [self.currentVC.view removeFromSuperview];
-                                [newController didMoveToParentViewController:self];
-                                self.currentVC = newController;
+                                    [newController didMoveToParentViewController:self];
                             }];
+    [self.currentVC removeFromParentViewController];
+    [self.currentVC.view removeFromSuperview];
+    self.currentVC = newController;
 }
 
 - (BOOL)toggleFullscreenAnimated:(BOOL)animated
